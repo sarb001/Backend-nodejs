@@ -1,9 +1,11 @@
 
 import express from 'express';
-import { Admin, Course } from '../Database/db.js';
+import { Admin, Course, User } from '../Database/db.js';
 import { adminmiddleware } from '../Middlewares/adminmiddleware.js';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
+
 
 // create account now
 
@@ -37,6 +39,43 @@ router.post('/signup' , async function(req,res){
         })
     }
 })
+
+// signin now
+router.post('/signin' , async(req,res) => {
+    try {
+        const username = req.body.username;
+        const password = req.body.password;
+
+        console.log('username | pass -',username,password);
+        if(!username || !password){
+            return res.status(400).json({
+                msg : "Invalid Credentails"
+            })
+        }
+        
+        const FindUser = await User.find({username});
+        if(!FindUser){
+            return res.status(400).json({
+                msg : "Create Account First"
+            })
+        }else{
+            // create token 
+            const Token =  jwt.sign({username : username}, process.env.JwtSecret);
+            console.log('tokenn -',Token);
+            
+            return res.status(200).json({
+                Token,
+                msg : "LoggedIn"
+            })
+        }
+    } catch (error) {
+            return res.status(400).json({
+                msg : 'Login Error'
+            })
+    }
+
+})
+
 
 // create course Admin Only
 
